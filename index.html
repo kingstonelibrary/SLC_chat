@@ -53,7 +53,7 @@
        **/
       init: () => {
         this.db = firebase.firestore();
-        this.messagesRef = this.db.collection("chatroom").doc("room1").collection("messages");
+        this.messagesRef = this.db.collection("chatroom").document("chatroom1").collection("messages");
 
         //---------------------
         // 同期処理
