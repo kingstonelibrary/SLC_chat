@@ -26,7 +26,7 @@
     <div id="uname"></div>
     <input type="text" id="msg"><button type="button" id="sbmt">送信</button>
   </form>
-
+<hr><center><div id="logout">[LogOut]</div></center>
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-firestore.js"></script>
@@ -54,7 +54,6 @@
       init: () => {
         this.db = firebase.firestore();
         this.messagesRef = this.db.collection("chatroom").doc("chatroom1").collection("messages");
-
         //---------------------
         // 同期処理
         //---------------------
@@ -83,6 +82,15 @@
           if( msg.length !== 0 ){
             Chat.sendLog(msg);
           }
+        });
+        document.getElementById("logout").addEventListener("click", ()=>{
+          firebase.auth().signOut().then(function() {
+            alert('ログアウトしました');
+            location.reload();
+          }).catch(function(error) {
+            alert('ログアウトできませんでした');
+            location.reload();
+          });
         });
         // submitイベントは（いったん）無視する
         document.getElementById("form1").addEventListener("submit", (e)=>{
