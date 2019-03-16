@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Firestore Chat2</title>
+  <title>Firestore Chat3</title>
   <style>
       #chatlog{ width:520px; height:300px; border:1px solid gray; overflow-y:scroll; }
       #pleaselogin{ width:540px; border:1px solid gray; padding:10px; background-color:lightgrey; }
@@ -10,10 +10,13 @@
       #msg{ width:300px; height:30px; margin-right:10px; font-size:12pt;}
       #sbmt{ width:100px; height:30px; }
       .hide{display:none}
+
+      .chatlog-item{cursor:default;}
+      .chatlog-item-mine{background-color:lightpink; cursor:pointer;}
   </style>
 </head>
 <body>
-  <h1>Firestore Chat2</h1>
+  <h1>Firestore Chat3</h1>
 
   <!-- 発言が表示される領域 -->
   <ul id="chatlog"></ul>
@@ -26,7 +29,7 @@
     <div id="uname"></div>
     <input type="text" id="msg"><button type="button" id="sbmt">送信</button>
   </form>
-<hr><center><div id="logout">[LogOut]</div></center>
+
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/5.8.1/firebase-firestore.js"></script>
@@ -40,6 +43,7 @@
       // プロパティ
       //----------------------------------------
       user: {
+        uid: null,
         name: null
       },
       db: null,
@@ -54,6 +58,7 @@
       init: () => {
         this.db = firebase.firestore();
         this.messagesRef = this.db.collection("chatroom").doc("chatroom1").collection("messages");
+
         //---------------------
         // 同期処理
         //---------------------
@@ -80,34 +85,26 @@
         document.getElementById("sbmt").addEventListener("click", ()=>{
           let msg = document.getElementById("msg").value;
           if( msg.length !== 0 ){
-            Chat.sendLog(msg);
+            Chat.sendLogCreate(msg);
           }
         });
-        document.getElementById("logout").addEventListener("click", ()=>{
-          firebase.auth().signOut().then(function() {
-            alert('ログアウトしました');
-            location.reload();
-          }).catch(function(error) {
-            alert('ログアウトできませんでした');
-            location.reload();
-          });
-        });
-        
+        // submitイベントは（いったん）無視する
         document.getElementById("form1").addEventListener("submit", (e)=>{
           e.preventDefault();
         });
       },
 
       /**
-       * Firestoreへ送信
+       * [Firestoreへ送信] ログを追加
        *
-       * @param {string} str 送信内容
+       * @param {string} str メッセージ
        **/
-      sendLog: (str)=>{
+      sendLogCreate: (str)=>{
         this.messagesRef.add({
           name: Chat.user.name,
           msg: str,
-          date: new Date().getTime()
+          date: new Date().getTime(),
+          uid: Chat.user.uid
         })
         .then(()=>{
           let msg = document.getElementById("msg");
@@ -116,6 +113,20 @@
         })
         .catch((error) => {
           console.log(`追加に失敗しました (${error})`);
+        });
+      },
+      /**
+       * [Firestoreへ送信] ログを削除
+       *
+       * @param {string} id
+       **/
+       sendLogRemove: (id)=>{
+        this.messagesRef.doc(id).delete()
+        .then(()=>{
+          console.log(`削除しました (${id})`);
+        })
+        .catch((error) => {
+          console.log(`削除に失敗しました (${error})`);
         });
       },
 
@@ -129,12 +140,24 @@
         // 追加するHTMLを作成
         let log = `${data.name}: ${data.msg} (${getStrTime(data.date)})`;
         let li  = document.createElement('li');
-        li.id   = id;
+        li.id   = id;                                 // id属性を作成
+        li.dataset.uid = data.uid;                    // data-uid属性を作成
+        li.classList.add( (data.uid===Chat.user.uid)? "chatlog-item-mine":"chatlog-item");
         li.appendChild(document.createTextNode(log));
 
         // 表示エリアへ追加
         let chatlog = document.getElementById("chatlog");
         chatlog.insertBefore(li, chatlog.firstChild);
+
+        // 削除機能をセット
+        document.getElementById(id).addEventListener("click", (e)=>{
+          let uid = e.target.dataset.uid;
+          let id  = e.target.id;
+
+          if( uid === Chat.user.uid && confirm("削除しますか？") ){
+            Chat.sendLogRemove(id);
+          }
+        });
       },
 
       /**
@@ -180,7 +203,8 @@
         document.getElementById("chatlog").classList.remove("hide");
         document.getElementById("form1").classList.remove("hide");
 
-        // ユーザー名を確保
+        // ユーザー情報を確保
+        Chat.user.uid  = user.uid;
         Chat.user.name = user.displayName;
         document.getElementById("uname").innerText = Chat.user.name;
       }
