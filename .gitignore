@@ -8,7 +8,7 @@ firebase-debug.log*
 
 FirebaseCLIログイン時、初期化時エラー対処/
 *.webloc
-
+DBのインデックス追加エラーについて/
 # Firebase cache
 .firebase/
 
