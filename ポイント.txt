@@ -1,0 +1,53 @@
+
+Firebase格納プロジェクト	SLCproject
+デプロイGitHUBページ		https://github.com/kingstonelibrary/SLC_chat
+
+gitコミット
+	その２ の完成時点　＝　「end of 'sono2'」
+
+CloudStoreのコレクションごとにルールを設定できることが新たな知恵となった
+		
+		service cloud.firestore {
+		  match /databases/{database}/documents {
+		    match /chatroom/room2/messages/{document} {		← 「＋コレクションを追加」ボタンから初めて、コレクション名ードキュメントID（自動でなく自分でつける）ーコレクション名となっている
+		      allow get:  if true;
+		      allow list: if request.query.limit <= 3;							← データ数は３つ以下　指定
+		      allow write: if request.auth.uid != null;						← 書き込みは uid獲得済（ログイン済）が条件となる
+		    }
+		  }
+		}
+
+コレクションの更新イベントごとに処理内容を設定することができる
+
+		this.messagesRef = this.db.collection("chatroom").doc("chatroom1").collection("messages");			// コレクション取得
+		
+        this.messagesRef.orderBy("date", "asc").limit(20).onSnapshot( (snapshot) => {								// 日時で並び替えた上でイベントごとの処理内容追加
+          snapshot.docChanges().forEach((change) => {
+            // 追加
+            if ( change.type === 'added' ) {
+              Chat.addLog(change.doc.id, change.doc.data());
+            }
+            // 更新
+            else if( change.type === 'modified' ){
+              Chat.modLog(change.doc.id, change.doc.data());
+            }
+            // 削除
+            else if ( change.type === 'removed' ) {
+              Chat.removeLog(change.doc.id);
+            }
+          });
+        });
+
+発言の削除の手法
+	初げの追加関数 addLog: (id, data) にユーザのIDを渡して発言のDOM( li要素 )にカスタム属性として毎回、IDおつけておく。
+	発言をクリックするイベントで、ログインユーザと発言要素のID属性を確認して一致していたら削除するロジック
+	（自分の発言以外のDOM(li要素)にはその属性は付与されていないので削除できない
+	
+メール認証の場合、[Authentification]-[ログイン方法]-[メール]　
+	[ユーザーがメールアドレスとパスワードを使用してログインできるようにします。] を有効にして保存するが
+	[メールリンク（パスワードなしでログイン） ] は有効にしない
+	
+GItHUBのホスティングの場合、gh-pagesのルートは注意が必要
+	今回のリポジトリのサイト＝https://kingstonelibrary.github.io/SLC_chat/
+	HTML内でのJSのファイルのパス指定例　<script src="/SLC_chat/js/config.js"></script>		← /SLC_chat/ の部分が必要
+	
