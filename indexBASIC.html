@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="jquery.js"></script>
+</head>
+<body>
+  <br><br><br><br><br>
+  <h3>CORS &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;要求先(SLC)：/testCORS/secret.txt、設置先：http://pengpeng.chips.jp/CORStest/</h3>
+  <dir class="explain">
+    XHRで相手サーバーのテキストファイルを要求してしる<br>
+    通常、CORSしていないのでブラウザが以下のように拒否するが<br>
+    対象ディレクトリに「Access-Control-Allow-Origin」を加えた.htaccessを設置している
+  </dir><br>
+<h3> ＝エラーメッセージ＝</h3>
+<pre style="color:blueviolet;">
+  クロスオリジン要求をブロックしました: 
+  同一生成元ポリシーにより、*** にあるリモートリソースの読み込みは拒否されます
+   (理由: CORS ヘッダー ‘Access-Control-Allow-Origin’ が足りない)。
+</pre><br>
+<h3> .htaccess</h3>
+<pre style="color:blueviolet;">
+    Header append Access-Control-Allow-Origin: http://pengpeng.chips.jp
+</pre>
+<br><br>
+<h4>
+リクエストヘッダにセットされるoriginは”http://pengpeng.chips.jp”で<br>
+けつスラッシュがないので、.htacess内の許可URLもつけないこと
+
+
+</h4>
+  <hr>
+
+  <script>
+    $(document).ready(function(){
+      $.ajax({
+        beforeSend: function (xhr) {
+            xhr.overrideMimeType('text/html;charset=UTF-8');
+            xhr.setRequestHeader ("Authorization", "Basic " + btoa('ukonn:BnXQ_Hs)z='));
+        },
+        url: 'http://pengpeng.chips.jp/basicAuth/secret.data',
+        type: 'GET'
+    })
+        .done((data, textStatus, jqXHR) => {
+            console.log(data);
+
+        })
+        .fail((jqXHR, textStatus, errorThrown) => {
+            console.log(jqXHR.status);
+        })
+      // var xhr = new XMLHttpRequest();
+      // xhr.open("GET", "https://slc-mie.com/testCORS/secret.txt", true);
+      // xhr.onload = function (e) {
+      //   if (xhr.readyState === 4) {
+      //     if (xhr.status === 200) {
+      //       console.log(xhr.responseText);
+      //     } else {
+      //       console.error(xhr.statusText);
+      //     }
+      //   }
+      // };
+      // xhr.onerror = function (e) {
+      //   console.error(xhr.statusText);
+      // };
+      // xhr.send(null);
+
+    });
+
+  </script>
+</body>
+</html>

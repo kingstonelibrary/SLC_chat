@@ -9,6 +9,7 @@ firebase-debug.log*
 FirebaseCLIログイン時、初期化時エラー対処/
 *.webloc
 DBのインデックス追加エラーについて/
+DBの禁句クラウド関数追加 FirebaseFunctions/
 # Firebase cache
 .firebase/
 
